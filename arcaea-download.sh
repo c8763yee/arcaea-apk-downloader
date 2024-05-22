@@ -32,18 +32,19 @@ function get_apk_url(){
 function write_version(){
     apk_version=$(echo "$webapi_response" | jq -r '.value.version')
     # give write permission for version.txt
-    chmod go+w ~/version.txt
-    echo $apk_version > ~/version.txt
+    chmod go+w /home/c8763yee/version.txt
+    echo $apk_version > /home/c8763yee/version.txt
     # remove write permission for version.txt after writing
-    chmod go-w ~/version.txt
+    chmod go-w /home/c8763yee/version.txt
 }
 function check_version(){
     latest_version=$(echo $webapi_response | jq -r '.value.version')
     if [[ -f version.txt ]]; then
-        current_version=$(cat ~/version.txt)
+        current_version=$(cat /home/c8763yee/version.txt)
         if [[ $latest_version == "$current_version" ]]; then
             echo "You are already on the latest version."
             is_latest=true
+            exit 
         elif [[ $latest_version != "$current_version" ]]; then
             echo "New version available: $latest_version, current version: $current_version."
             is_latest=false
@@ -69,7 +70,7 @@ function uncompress_apk(){
         >&2 echo "APK not found."
         exit 1
     fi
-    unzip /tmp/arcaea.apk -d /tmp/arcaea
+    unzip -oqq /tmp/arcaea.apk -d /tmp/arcaea
 }
 
 function move_assets(){

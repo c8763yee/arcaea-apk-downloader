@@ -30,12 +30,8 @@ function get_apk_url(){
     fi
 }
 function write_version(){
-    apk_version=$(echo "$webapi_response" | jq -r '.value.version')
-    # give write permission for version.txt
-    chmod go+w /home/c8763yee/version.txt
+    apk_version=$(echo $webapi_response | jq -r '.value.version')
     echo $apk_version > /home/c8763yee/version.txt
-    # remove write permission for version.txt after writing
-    chmod go-w /home/c8763yee/version.txt
 }
 function check_version(){
     latest_version=$(echo $webapi_response | jq -r '.value.version')
@@ -85,7 +81,7 @@ function move_assets(){
             sudo mkdir -p /opt/arcaea/assets/$asset
         fi
         # move into parent folder if $asset is a multi-level directory
-        sudo mv /tmp/arcaea/assets/$asset/* /opt/arcaea/assets/$asset/
+        sudo cp -arf /tmp/arcaea/assets/$asset/* /opt/arcaea/assets/$asset/
     done
 }
 

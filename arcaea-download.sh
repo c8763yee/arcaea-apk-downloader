@@ -2,7 +2,7 @@
 
 URL='https://webapi.lowiro.com/webapi/serve/static/bin/arcaea/apk'
 REQUIRED_PACKAGES=(curl jq wget unzip)
-REQUIRED_ASSETS=(img/bg songs)
+REQUIRED_ASSETS=(img/grade songs)
 
 # JSON SCHEMA:
 # {
@@ -89,13 +89,17 @@ function cleanup(){
     rm -rf /tmp/arcaea{.apk,}
 }
 
+function restart_docker_containter(){
+    docker restart bot file_api
+}
+
 function main(){
     get_apk_url && check_package && check_version 
     if [[ $is_latest == true ]]; then
         echo "You are already on the latest version."
         exit 0
     else
-        download_apk && uncompress_apk && move_assets && cleanup
+        download_apk && uncompress_apk && move_assets && cleanup && restart_docker_containter
     fi
 }
 

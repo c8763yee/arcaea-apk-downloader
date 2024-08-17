@@ -2,7 +2,7 @@
 
 URL='https://webapi.lowiro.com/webapi/serve/static/bin/arcaea/apk'
 REQUIRED_PACKAGES=(curl jq wget unzip)
-REQUIRED_ASSETS=(img/grade songs)
+REQUIRED_ASSETS=(img/{grade,bg} songs)
 
 # JSON SCHEMA:
 # {
@@ -12,6 +12,15 @@ REQUIRED_ASSETS=(img/grade songs)
 #    "version": "5.6.1c"
 #  }
 #}
+
+function write_diff_after_update(){
+  echo "Diff after updated from $current_version to $latest_version"
+  # compare file and content between downloaded files and current files
+  if [[ ! -d /home/c8763yee/arcaea-download/diff ]]; then
+    mkdir -p /home/c8763yee/arcaea-download/diff
+  fi
+  diff -bur /tmp/arcaea /opt/arcaea | tee /home/c8763yee/arcaea-download/diff/diff-$current_version-$latest_version.txt
+}
 
 function check_package(){
     for package in "${REQUIRED_PACKAGES[@]}"; do
@@ -47,6 +56,7 @@ function check_version(){
         fi
     else
         echo "version.txt not found."
+        current_version="0.0.0"
         is_latest=false
     fi
 }
@@ -57,36 +67,38 @@ function download_apk(){
         exit 0
     fi
     apk_url=$(echo $webapi_response | jq -r '.value.url')
-    wget -O /tmp/arcaea.apk $apk_url
-    write_version
+    wget -qO /tmp/arcaea-$latest_version.apk $apk_url
 }
 
 function uncompress_apk(){
-    if [[ ! -f /tmp/arcaea.apk ]]; then
+    if [[ ! -f /tmp/arcaea-$latest_version.apk ]]; then
         >&2 echo "APK not found."
         exit 1
     fi
-    unzip -oqq /tmp/arcaea.apk -d /tmp/arcaea
+    unzip -oqq /tmp/arcaea-$latest_version.apk -d /tmp/arcaea_apk
 }
 
 function move_assets(){
     for asset in "${REQUIRED_ASSETS[@]}"; do
-        if [[ ! -d /tmp/arcaea/assets/$asset ]]; then
+        if [[ ! -d /tmp/arcaea_apk/assets/$asset ]]; then
             >&2 echo  "Asset $asset not found."
             exit 1
+        else
+            sudo mkdir -p /tmp/arcaea/assets/$asset
+            echo "Copy asset from /tmp/arcaea_apk/assets/$asset to /tmp/arcaea/assets/$asset"
+            sudo cp -arf /tmp/arcaea_apk/assets/$asset/* /tmp/arcaea/assets/$asset/
         fi
         # move assets to arcaea folder and make sure all user in this machine can access it
         # create folder if not exists
-        if [[ ! -d /opt/arcaea/assets/$asset ]]; then
-            sudo mkdir -p /opt/arcaea/assets/$asset
-        fi
-        # move into parent folder if $asset is a multi-level directory
-        sudo cp -arf /tmp/arcaea/assets/$asset/* /opt/arcaea/assets/$asset/
     done
+
+    sudo mkdir -p /opt/arcaea
+    write_diff_after_update
+    sudo cp -arf /tmp/arcaea/assets /opt/arcaea
 }
 
 function cleanup(){
-    rm -rf /tmp/arcaea{.apk,}
+    sudo rm -rf /tmp/arcaea{{-${latest_version}.,_}apk,}
 }
 
 function restart_docker_containter(){
@@ -99,7 +111,8 @@ function main(){
         echo "You are already on the latest version."
         exit 0
     else
-        download_apk && uncompress_apk && move_assets && cleanup && restart_docker_containter
+        download_apk && uncompress_apk && move_assets &&  
+        cleanup && restart_docker_containter && write_version
     fi
 }
 

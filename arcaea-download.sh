@@ -101,10 +101,6 @@ function cleanup(){
     sudo rm -rf /tmp/arcaea{{-${latest_version}.,_}apk,}
 }
 
-function restart_docker_containter(){
-    docker restart bot file_api
-}
-
 function main(){
     get_apk_url && check_package && check_version 
     if [[ $is_latest == true ]]; then
@@ -112,7 +108,7 @@ function main(){
         exit 0
     else
         download_apk && uncompress_apk && move_assets &&  
-        cleanup && restart_docker_containter && write_version
+        cleanup && write_version
     fi
 }
 

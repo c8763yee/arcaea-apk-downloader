@@ -19,7 +19,7 @@ function write_diff_after_update(){
   if [[ ! -d /home/c8763yee/arcaea-download/diff ]]; then
     mkdir -p /home/c8763yee/arcaea-download/diff
   fi
-  diff -bur /tmp/arcaea /opt/arcaea | tee /home/c8763yee/arcaea-download/diff/diff-$current_version-$latest_version.txt
+  diff -bur /tmp/arcaea /opt/arcaea | tee /home/c8763yee/arcaea-download/diff/diff-$current_version-$latest_version.diff
 }
 
 function check_package(){

@@ -4,22 +4,13 @@ URL='https://webapi.lowiro.com/webapi/serve/static/bin/arcaea/apk'
 REQUIRED_PACKAGES=(curl jq wget unzip)
 REQUIRED_ASSETS=(img/{grade,bg} songs)
 
-# JSON SCHEMA:
-# {
-#  "success": true,
-#  "value": {
-#    "url": "https://arcaea-static.lowiro-cdn.net/YBaMFpe0aOWlw5uMTWV0s5cm8879tFZ9TXOLBbeuOmnJa8ZNmNsW6KA37mwRIx%2FljzQ488Yu6kkDYV61S6MYTiBh6kL58VMbdfN3RLmXYP7GR4SE02t2X%2Fk9DVWaOv47kqfKiP0tvJmM1Cs%3D?filename=arcaea_5.6.1c.apk",
-#    "version": "5.6.1c"
-#  }
-#}
-
 function write_diff_after_update(){
   echo "Diff after updated from $current_version to $latest_version"
   # compare file and content between downloaded files and current files
-  if [[ ! -d /home/c8763yee/arcaea-download/diff ]]; then
-    mkdir -p /home/c8763yee/arcaea-download/diff
+  if [[ ! -d $HOME/arcaea-download/diff ]]; then
+    mkdir -p $HOME/arcaea-download/diff
   fi
-  diff -bur /tmp/arcaea /opt/arcaea | tee /home/c8763yee/arcaea-download/diff/diff-$current_version-$latest_version.diff
+  diff -bur /opt/arcaea /tmp/arcaea | tee $HOME/arcaea-download/diff/diff-$current_version-$latest_version.diff
 }
 
 function check_package(){
@@ -40,12 +31,12 @@ function get_apk_url(){
 }
 function write_version(){
     apk_version=$(echo $webapi_response | jq -r '.value.version')
-    echo $apk_version > /home/c8763yee/version.txt
+    echo $apk_version > $HOME/version.txt
 }
 function check_version(){
     latest_version=$(echo $webapi_response | jq -r '.value.version')
     if [[ -f version.txt ]]; then
-        current_version=$(cat /home/c8763yee/version.txt)
+        current_version=$(cat $HOME/version.txt)
         if [[ $latest_version == "$current_version" ]]; then
             echo "You are already on the latest version."
             is_latest=true
@@ -76,6 +67,8 @@ function uncompress_apk(){
         exit 1
     fi
     unzip -oqq /tmp/arcaea-$latest_version.apk -d /tmp/arcaea_apk
+    mkdir -p $HOME/arcaea-download/tree
+    tree /tmp/arcaea_apk > $HOME/arcaea-download/tree/$latest_version.txt
 }
 
 function move_assets(){

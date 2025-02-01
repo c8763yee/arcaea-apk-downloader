@@ -1,8 +1,9 @@
 #!/bin/bash
 
+set -xeu
+
 URL='https://webapi.lowiro.com/webapi/serve/static/bin/arcaea/apk'
 REQUIRED_PACKAGES=(curl jq wget unzip)
-REQUIRED_ASSETS=(img/{grade,bg} songs)
 
 function write_diff_after_update(){
   echo "Diff after updated from $current_version to $latest_version"
@@ -10,7 +11,7 @@ function write_diff_after_update(){
   if [[ ! -d $HOME/arcaea-download/diff ]]; then
     mkdir -p $HOME/arcaea-download/diff
   fi
-  diff -bur /opt/arcaea /tmp/arcaea | tee $HOME/arcaea-download/diff/diff-$current_version-$latest_version.diff
+  diff --color -bur /opt/arcaea /tmp/arcaea | tee $HOME/arcaea-download/diff/$current_version-$latest_version.diff
 }
 
 function check_package(){
@@ -72,18 +73,9 @@ function uncompress_apk(){
 }
 
 function move_assets(){
-    for asset in "${REQUIRED_ASSETS[@]}"; do
-        if [[ ! -d /tmp/arcaea_apk/assets/$asset ]]; then
-            >&2 echo  "Asset $asset not found."
-            exit 1
-        else
-            sudo mkdir -p /tmp/arcaea/assets/$asset
-            echo "Copy asset from /tmp/arcaea_apk/assets/$asset to /tmp/arcaea/assets/$asset"
-            sudo cp -arf /tmp/arcaea_apk/assets/$asset/* /tmp/arcaea/assets/$asset/
-        fi
-        # move assets to arcaea folder and make sure all user in this machine can access it
-        # create folder if not exists
-    done
+    sudo mkdir -p /tmp/arcaea
+    echo "Copy assets from /tmp/arcaea_apk/assets to /tmp/arcaea/assets"
+    sudo cp -arf /tmp/arcaea_apk/assets /tmp/arcaea/
 
     sudo mkdir -p /opt/arcaea
     write_diff_after_update

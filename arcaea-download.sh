@@ -69,7 +69,7 @@ function uncompress_apk(){
     fi
     unzip -oqq /tmp/arcaea-$latest_version.apk -d /tmp/arcaea_apk
     mkdir -p $HOME/arcaea-download/tree
-    tree /tmp/arcaea_apk > $HOME/arcaea-download/tree/$latest_version.txt
+    tree /tmp/arcaea_apk > $HOME/arcaea-download/tree/$latest_version.tree
 }
 
 function move_assets(){
